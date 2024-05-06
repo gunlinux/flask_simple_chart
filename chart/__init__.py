@@ -4,18 +4,27 @@ import os
 import logging
 
 from flask import Flask
+from flask.cli import AppGroup
 
 from chart.config import config
-from chart.extensions import db
+from chart.extensions import db, migrate
 from chart.events.views import event_blueprint
+from chart.models import User, Event
 
 
 logger = logging.getLogger(__name__)
+user_cli = AppGroup('data')
+
+
+@user_cli.command("generate")
+def generate_data():
+    raise NotImplementedError
 
 
 def configure_extensions(app):
     """Configures the extensions."""
     db.init_app(app)
+    migrate.init_app(app, db)
 
 
 def create_app():
@@ -25,4 +34,5 @@ def create_app():
     app.config.from_object(config.get(env))
     configure_extensions(app)
     app.register_blueprint(event_blueprint)
+    app.cli.add_command(user_cli)
     return app
