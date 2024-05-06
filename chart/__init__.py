@@ -23,7 +23,6 @@ def generate_data_cli():
     # Generate fake events
     db.session.add_all(fake_events)
     db.session.commit()
-    raise NotImplementedError
 
 
 def configure_extensions(app):
