@@ -1,9 +1,10 @@
-from flask import Blueprint, redirect, render_template, url_for, flash, jsonify
+from datetime import datetime, date, timedelta
+from flask import Blueprint, render_template, request, jsonify
 from chart.extensions import db
 from chart.models import User
 from chart.models import Issue
 import sqlalchemy as sa
-from sqlalchemy import func
+from sqlalchemy import func, extract
 
 
 event_blueprint = Blueprint("event", __name__)
@@ -11,20 +12,34 @@ event_blueprint = Blueprint("event", __name__)
 
 @event_blueprint.route('/', methods=['GET'])
 def index():
-    return render_template('events.html')
+    now = datetime.today()
+    return render_template('events.html', now=now)
 
 
 @event_blueprint.route('/chart-data', methods=['GET'])
 def chart_data():
-    user_events = db.session.query(User.last_name, func.count(Issue.id)).join(Issue, onclause=Issue.assignee_id == User.id).group_by(User.id).all()
-
-    print(user_events)
-    user_names = [user[0] for user in user_events]
-    event_counts = [count[1] for count in user_events]
     # Format data as JSON
+    before_q = request.args.get('before')
+    after_q = request.args.get('after')
+    before_date = datetime.strptime(before_q, '%d.%m.%Y')
+    after_date = datetime.strptime(after_q, '%d.%m.%Y')
+    after = datetime.combine(
+        after_date, datetime.min.time()
+    ) + timedelta(seconds=1)
+    before = datetime.combine(before_date, datetime.min.time())
+    print(after, before)
+    events = (
+        db.session.query(
+            func.count(Event.id),
+            extract("hour", Event.createdon).label("hour"),
+        )
+        .filter(Event.createdon.between(after, before))
+        .group_by(extract("hour", Event.createdon))
+        .all()
+    )
+    hourly_events_dict = {hour: count for count, hour in events}
     chart_data = {
-        'user_names': user_names,
-        'event_counts': event_counts
+        'event_counts': [hourly_events_dict.get(x, 0) for x in range(0, 24)],
+        'hours': [x for x in range(0, 24)],
     }
-    print(chart_data)
     return jsonify(chart_data)

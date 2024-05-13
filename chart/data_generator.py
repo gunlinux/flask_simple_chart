@@ -31,5 +31,5 @@ def generate_data():
     fake = Faker()
     fake.add_provider(date_time)
     users = generate_fake_users(fake, 10)
-    events = generate_fake_events(fake, users, 100)
+    events = generate_fake_events(fake, users, 3000)
     return users, events
