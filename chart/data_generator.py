@@ -1,7 +1,9 @@
+import random
+
 from faker import Faker
 from faker.providers import date_time
-from chart.models import User, Event
-import random
+
+from chart.models import Issue, User
 
 
 def generate_fake_users(fake, n):
@@ -12,17 +14,17 @@ def generate_fake_users(fake, n):
     return users
 
 
-def generate_fake_events(fake, users, n):
-    events = []
+def generate_fake_issues(fake, users, n):
+    issues = []
     print(users)
     for _ in range(n):
         user_id = random.randint(1, 10)
-        event = Event(
+        issue = Issue(
             createdon=fake.date_time_between(start_date="-30d", end_date="now"),
             user_id=user_id,
         )
-        events.append(event)
-    return events
+        issues.append(issue)
+    return issues
 
 
 def generate_data():

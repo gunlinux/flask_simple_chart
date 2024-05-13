@@ -1,6 +1,7 @@
 from flask import Blueprint, redirect, render_template, url_for, flash, jsonify
 from chart.extensions import db
-from chart.models import User, Event
+from chart.models import User
+from chart.models import Issue
 import sqlalchemy as sa
 from sqlalchemy import func
 
@@ -15,7 +16,7 @@ def index():
 
 @event_blueprint.route('/chart-data', methods=['GET'])
 def chart_data():
-    user_events = db.session.query(User.pagetitle, func.count(Event.id)).join(Event).group_by(User.id).all()
+    user_events = db.session.query(User.pagetitle, func.count(Issue.id)).join(Issue).group_by(User.id).all()
 
     print(user_events)
     user_names = [user[0] for user in user_events]
