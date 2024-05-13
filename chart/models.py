@@ -35,7 +35,19 @@ class User(db.Model):
     position: Mapped[str] = mapped_column(String(300))
     patronymic: Mapped[str] = mapped_column(String(100))
     parameters: Mapped[str] = mapped_column(Text)
-    issues: Mapped[list["Issue"]] = relationship()
+    issues_created: Mapped[list["Issue"]] = relationship(
+        "Issue", back_populates="author", foreign_keys="[Issue.author_id]"
+    )
+    issues_assigned: Mapped[list["Issue"]] = relationship(
+        "Issue", back_populates="assignee", foreign_keys="[Issue.assignee_id]"
+    )
+    issues_contacted: Mapped[list["Issue"]] = relationship(
+        "Issue", back_populates="contact", foreign_keys="[Issue.contact_id]"
+    )
+
+
+# i user can be multiple  issue
+# issue can have only one,  so it's one to meny
 
 
 @dataclass
@@ -45,15 +57,11 @@ class Issue(db.Model):
     id = Column(Integer, primary_key=True)
     sequential_id: Mapped[int]
     company_id: Mapped[int]  # ForeignKey("companies.id"))
-    contact_id: Mapped[int]  # ForeignKey("users.id"))
     maintenance_entity_id: Mapped[int]  # ForeignKey("company_maintenance_entities.id")
-    assignee_id: Mapped[int]  # ForeignKey("users.id"))
-    author_id: Mapped[int]  # ForeignKey("users.id"))
     agreement_id: Mapped[int]
     status_id: Mapped[int]  # ForeignKey("issue_statuses.id"))
     work_type_id: Mapped[int]  # ForeignKey("issue_work_types.id"))
     priority_id: Mapped[int]  # ForeignKey("issue_priorities.id"))
-    title: Mapped[str]
     created_at: Mapped[datetime.datetime]
     completed_at: Mapped[datetime.datetime]
     deadline_at: Mapped[datetime.datetime]
@@ -69,14 +77,18 @@ class Issue(db.Model):
     spent_seconds_for_reaction_in_sla: Mapped[int]
     spent_seconds_for_completion_in_sla: Mapped[int]
     group_id: Mapped[int]
+    contact_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    assignee_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    contact: Mapped["User"] = relationship("User", foreign_keys=[contact_id])
+    assignee: Mapped["User"] = relationship("User", foreign_keys=[assignee_id])
+    author: Mapped["User"] = relationship("User", foreign_keys=[author_id])
+
     parameters: Mapped[str] = mapped_column(Text)
-    parent_id: Mapped[int] = Column(Integer, ForeignKey("issues.id"))
+    parent_id: Mapped[int]  = Column(Integer, ForeignKey("issues.id"))
     # parent_issue: Mapped = relationship("Issue", remote_side=[id])
     # company = relationship("Company")
-    # contact # relationship("User", foreign_keys=[contact_id])
     # maintenance_entity: Mapped  C = relationship("CompanyMaintenanceEntity")
-    # assignee: = relationship("User", foreign_keys=[assignee_id])
-    # author = relationship("User", foreign_keys=[author_id])
     # status: Mapped  C = relationship("IssueStatus")
     # work_type: Mapped  C = relationship("IssueWorkType")
     # priority: Mapped  C = relationship("IssuePriority")
