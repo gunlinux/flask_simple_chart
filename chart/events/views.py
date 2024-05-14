@@ -30,11 +30,11 @@ def chart_data():
     print(after, before)
     events = (
         db.session.query(
-            func.count(Event.id),
-            extract("hour", Event.createdon).label("hour"),
+            func.count(Issue.id),
+            extract("hour", Issue.created_at).label("hour"),
         )
-        .filter(Event.createdon.between(after, before))
-        .group_by(extract("hour", Event.createdon))
+        .filter(Issue.created_at.between(after, before))
+        .group_by(extract("hour", Issue.created_at))
         .all()
     )
     hourly_events_dict = {hour: count for count, hour in events}
