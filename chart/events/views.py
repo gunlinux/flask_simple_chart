@@ -18,22 +18,20 @@ def index():
 
 @event_blueprint.route('/chart-data', methods=['GET'])
 def chart_data():
-    # Format data as JSON
-    before_q = request.args.get('before')
-    after_q = request.args.get('after')
-    before_date = datetime.strptime(before_q, '%d.%m.%Y')
-    after_date = datetime.strptime(after_q, '%d.%m.%Y')
-    after = datetime.combine(
-        after_date, datetime.min.time()
+    end_q = request.args.get('end')
+    start_q = request.args.get('start')
+    end_date = datetime.strptime(end_q, '%d.%m.%Y')
+    start_date = datetime.strptime(start_q, '%d.%m.%Y')
+    start = datetime.combine(
+        start_date, datetime.min.time()
     ) + timedelta(seconds=1)
-    before = datetime.combine(before_date, datetime.min.time())
-    print(after, before)
+    end = datetime.combine(end_date, datetime.min.time())
     events = (
         db.session.query(
             func.count(Event.id),
             extract("hour", Event.createdon).label("hour"),
         )
-        .filter(Event.createdon.between(after, before))
+        .filter(Event.createdon.between(start, end))
         .group_by(extract("hour", Event.createdon))
         .all()
     )
